@@ -2,6 +2,8 @@ import sklearn
 from sklearn.model_selection import train_test_split
 from sklearn.decomposition import PCA
 from sklearn.preprocessing import StandardScaler
+from sklearn.cluster import KMeans
+from sklearn.metrics import silhouette_score
 scaler = StandardScaler()
 
 import seaborn as sns
@@ -48,3 +50,8 @@ plt.ylabel("Principal Component 2")
 plt.grid(True)
 plt.show()
 plt.clf()
+
+#Kmeans Clustering
+KMeans_Model = KMeans(n_clusters=2, random_state=42)
+KMeans_Model.fit(X_train)
+print(silhouette_score(X_train, KMeans_Model.labels_))
