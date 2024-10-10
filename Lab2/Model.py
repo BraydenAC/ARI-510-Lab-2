@@ -1,15 +1,14 @@
-import sklearn
 from sklearn.model_selection import train_test_split
 from sklearn.decomposition import PCA
 from sklearn.preprocessing import StandardScaler
 from sklearn.cluster import KMeans, DBSCAN
-from sklearn.cluster import dbscan
-from sklearn.metrics import silhouette_score
+from sklearn.metrics import silhouette_score, accuracy_score, classification_report
+from sklearn.ensemble import RandomForestClassifier
+from sklearn.linear_model import LogisticRegression
 scaler = StandardScaler()
 
 import seaborn as sns
 import matplotlib.pyplot as plt
-import pandas as pd
 import numpy as np
 
 #Loading dataset into project
@@ -28,14 +27,14 @@ X_test_pca = pca.transform(X_test)
 
 #display hist
 sns.histplot(y_train)
-# plt.show()
+plt.show()
 plt.close()
 
 #display line graph
 explained_variance = pca.explained_variance_ratio_
 components = np.arange(1, len(explained_variance) + 1)
 sns.lineplot(x=components, y=explained_variance)
-# plt.show()
+plt.show()
 plt.close()
 
 #Scatter plot for first 2 principal components
@@ -49,7 +48,7 @@ plt.title("Scatter plot of the first 2 principal components")
 plt.xlabel("Principal Component 1")
 plt.ylabel("Principal Component 2")
 plt.grid(True)
-# plt.show()
+plt.show()
 plt.close()
 
 #Kmeans Clustering
@@ -58,7 +57,7 @@ KMeans_Model.fit(X_train)
 print("Silhouette Score:")
 print(silhouette_score(X_train, KMeans_Model.labels_))
 
-#Scatter plot for cluster labels using top 2 principle components
+#Scatter plot for cluster labels using top 2 principal components
 plt.figure(figsize=(10, 7))
 scatter = plt.scatter(X_train_pca[:, 0], X_train_pca[:, 1], c=KMeans_Model.labels_, cmap='viridis', edgecolor='k', s=100)
 
@@ -69,7 +68,7 @@ plt.title("Scatter plot for cluster labels")
 plt.xlabel("Principal Component 1")
 plt.ylabel("Principal Component 2")
 plt.grid(True)
-# plt.show()
+plt.show()
 plt.close()
 
 #DBSCAN
@@ -89,3 +88,46 @@ plt.ylabel("Principal Component 2")
 plt.grid(True)
 plt.show()
 plt.close()
+
+X_train_first = X_train_pca[:, :2]
+X_test_first = X_test_pca[:, :2]
+X_train_top = np.delete(X_train_pca[:, :3], 1, axis=1)
+X_test_top = np.delete(X_test_pca[:, :3], 1, axis=1)
+
+#Random Forest Model: top 2 features
+RandTree_Model = RandomForestClassifier()
+RandTree_Model.fit(X_train_pca, y_train)
+#Feature Importances
+print()
+print(RandTree_Model.feature_importances_)
+
+#LOGISISTIC REGRESSION
+#Top 2 features(first and third)
+LogReg_Model1 = LogisticRegression(max_iter=500)
+LogReg_Model1.fit(X_train_top, y_train)
+
+#full feature set
+LogReg_Model2 = LogisticRegression(max_iter=500)
+LogReg_Model2.fit(X_train, y_train)
+
+#first two features
+LogReg_Model3 = LogisticRegression(max_iter=500)
+LogReg_Model3.fit(X_train_first, y_train)
+
+
+#Make Predictions
+Model_1_Predictions = LogReg_Model1.predict(X_test_top)
+Model_2_Predictions = LogReg_Model2.predict(X_test)
+Model_3_Predictions = LogReg_Model3.predict(X_test_first)
+
+# Display Results
+print(f"Logistic Regression, top 2: {accuracy_score(y_test, Model_1_Predictions)}")
+print(f"Logistic Regression, Full: {accuracy_score(y_test, Model_2_Predictions)}")
+print(f"Logistic Regression, first 2: {accuracy_score(y_test, Model_3_Predictions)}")
+print()
+print("Logistic Regression, top 2")
+print(classification_report(y_test, Model_1_Predictions))
+print("\nLogistic Regression, Full")
+print(classification_report(y_test, Model_2_Predictions))
+print("\nLogistic Regression, first 2")
+print(classification_report(y_test, Model_3_Predictions))
